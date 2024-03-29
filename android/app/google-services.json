@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "162779619925",
+    "project_id": "elabv02",
+    "storage_bucket": "elabv02.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:162779619925:android:e14d8d14e294566435aadc",
+        "android_client_info": {
+          "package_name": "com.example.elabv01"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrX239eJnHu-vt5eKiAvnTwPlAn8UAom4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

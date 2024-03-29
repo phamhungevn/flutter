@@ -1,0 +1,176 @@
+import 'dart:ui' as ui show Rect, Offset, Size;
+import 'package:vector_math/vector_math.dart' as vector_math show Matrix2, Vector2;
+import 'dart:math' as math show min, max;
+
+/// Utility conversion Offset ==> Vector2
+
+vector_math.Vector2 offsetToVector2(ui.Offset offset) => vector_math.Vector2(offset.dx, offset.dy);
+
+/// Utility conversion Vector2  ==> Offset
+
+ui.Offset vector2ToOffset(vector_math.Vector2 vector) => ui.Offset(vector.x, vector.y);
+
+ui.Offset transform({
+  required vector_math.Matrix2 matrix,
+  required ui.Offset offset,
+}) {
+  return vector2ToOffset(matrix * offsetToVector2(offset));
+}
+
+
+/// Immutable envelope of a rotated copy of [sourceRect].
+///
+/// Used to create rotated (tilted) labels on the X axis,
+/// which involves canvas [Canvas.rotate].
+///
+/// The [sourceRect] is copied, then centered at origin, 
+/// then rotated around it's center, then enveloped by
+/// it's unrotated (parallel to axes) [envelopeRect]. The corners
+/// of the rotated copy of the [sourceRect] are maintained as
+///  [topLeft], [topRight], [bottomLeft], [bottomRight].
+///
+///  After rotation and envelope creation, both [envelopeRect]
+///  and the corners of the rotated rectangle
+///  (the [topLeft], [topRight], [bottomLeft], [bottomRight]), are then
+/// shifted so that the [envelopeRect.topLeft] = [sourceRect.topLeft]
+///
+/// *Note that the rotation origin ("pivot") is NOT the center of the coordinate
+/// system, but the center of the rectangle*.
+///
+/// Positive rotations are clockwise, which is DIFFERENT from math.
+///
+/// Pictorial example of the corners of the [sourceRect]
+/// rotated by (about) by -PI/4 (first picture) and +PI/4 (second)
+/// are marked as "x" below, also showing the enveloping [envelopeRect].
+///     +-x------+ <-- x = TL
+///     |.  .    |
+///     x     .  | <-- x = TR
+///     | .     .|                +PI/4, text direction: \
+///     |   .   .x <-- x = BR                             \
+///     +------x-+ <-- x = BL                              v
+///
+///     +------x-+ <-- x = TR
+///     |    .  .|                                          ^
+///     |   .    x <-- x = BR                              /
+///     | .    . |                 -PI/4, text direction: /
+///     x.   .   | <-- x = TL
+///     +-x------+ <-- x = BL
+
+class EnvelopedRotatedRect {
+  ui.Offset _topLeft;
+
+  get topLeft => _topLeft;
+
+  ui.Offset _topRight;
+
+  get topRight => _topRight;
+
+  ui.Offset _bottomLeft;
+
+  get bottomLeft => _bottomLeft;
+
+  ui.Offset _bottomRight;
+
+  get bottomRight => _bottomRight;
+
+  final vector_math.Matrix2 _rotatorMatrix;
+
+  /// The matrix used for rotation of the [sourceRect], after which the
+  /// rotated corners [topLeft] etc) are created.
+  get rotatorMatrix => _rotatorMatrix;
+
+  final ui.Rect _sourceRect;
+
+  /// The source, unrotated rectangle
+  get sourceRect => _sourceRect;
+
+  ui.Rect _envelopeRect;
+
+  /// The smallest non-rotated rectangle which envelops the rotated rectangle.
+  get envelopeRect => _envelopeRect;
+
+  /// Represents a rectangle [rect] rotated around pivot at center of rectangle,
+  /// by the [rotateMatrix]. Note that the [rotateMatrix] must be
+  /// rotated by angle inverse to tha the canvas and text is rotated.
+  /// (It is the reverse rotation that defines the [topLeft] of text start!)
+  ///
+  /// During rotation, a reference to the original rectangle corners
+  /// [topLeft], [topRight], [bottomLeft], [bottomRight] is maintained
+  ///
+  /// This is to allow canvas-rotated text painting, which requires to
+  /// rotate the label.
+  ///
+  /// Currently only pivot = rectangle center is supported.
+  ///
+  EnvelopedRotatedRect.centerRotatedFrom({
+    required ui.Rect rect,
+    required vector_math.Matrix2 rotateMatrix,
+  })  : _rotatorMatrix = rotateMatrix,
+        _sourceRect = rect,
+        _envelopeRect = rect,
+        _topLeft = rect.topLeft,
+        _topRight = rect.topRight,
+        _bottomLeft = rect.bottomLeft,
+        _bottomRight = rect.bottomRight {
+    if (_rotatorMatrix == vector_math.Matrix2.identity()) {
+      // already set in initializer, done and return
+      return;
+    }
+
+    // shift = copy and translate rect so that origin = center of rect
+    ui.Rect movedToCenterAsOrigin = rect.shift(-rect.center);
+
+    _topLeft = movedToCenterAsOrigin.topLeft;
+    _topRight = movedToCenterAsOrigin.topRight;
+    _bottomLeft = movedToCenterAsOrigin.bottomLeft;
+    _bottomRight = movedToCenterAsOrigin.bottomRight;
+
+    // Rotate all corners of the rectangle. If the _rotatorMatrix angle is positive, 
+    // rotation is CLOCKWISE from +x to +y axis - see Offset.atan2 and Math.atan2 documentation.
+    _topLeft = transform(matrix: _rotatorMatrix, offset: _topLeft);
+    _topRight = transform(matrix: _rotatorMatrix, offset: _topRight);
+    _bottomLeft = transform(matrix: _rotatorMatrix, offset: _bottomLeft);
+    _bottomRight = transform(matrix: _rotatorMatrix, offset: _bottomRight);
+
+    var rotOffsets = [_topLeft, _topRight, _bottomLeft, _bottomRight];
+
+    double minX = rotOffsets.map((offset) => offset.dx).reduce(math.min);
+    double maxX = rotOffsets.map((offset) => offset.dx).reduce(math.max);
+    double minY = rotOffsets.map((offset) => offset.dy).reduce(math.min);
+    double maxY = rotOffsets.map((offset) => offset.dy).reduce(math.max);
+
+    // _envelopRect is always centered at origin, and envelopes the rotated original rect moved to origin:
+    // that is, the _envelopRect envelops the movedToCenterAsOrigin
+    _envelopeRect = ui.Rect.fromPoints(
+      ui.Offset(minX, minY),
+      ui.Offset(maxX, maxY),
+    );
+
+    //  After rotation and envelope creation, both [envelopeRect]
+    //    and the corners of the rotated rectangle
+    //    (the [topLeft], [topRight], [bottomLeft], [bottomRight]), are then
+    //    shifted so that the [envelopeRect.topLeft] = [sourceRect.topLeft]
+    // The _sourceRect was the already offset rectangle bounds of the labelText,
+    //   we shift the _envelopeRect.topLeft to the position of _sourceRect.topLeft.
+    // The _envelopeRect now gives us the topLeft where the painting can start,
+    //   while guaranteed that the full rotated labelText will fit into _envelopRect.
+
+    // shift is generally large positive, from the already layed out X axis label [_sourceRect], 
+    //   to the envelope [_envelopeRect] around the coordinate center.
+    // Adding shift to the _topLeft (which is generally a small negative the centered beginning of non-tilted text),
+    // Gets us back to the area of layed out X axis labels.
+    ui.Offset shift = _sourceRect.topLeft - _envelopeRect.topLeft;
+    _envelopeRect = _envelopeRect.shift(shift);
+
+    _topLeft = _topLeft + shift;
+    _topRight = _topRight + shift;
+    _bottomLeft = _bottomLeft + shift;
+    _bottomRight = _bottomRight + shift;
+  }
+
+  ui.Size get size => _envelopeRect.size;
+}
+
+Iterable<double> iterableNumToDouble(Iterable<num> nums) {
+  return nums.map((num aNum) => aNum.toDouble()).toList();
+}
