@@ -74,7 +74,8 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentBlocState> {
         listWeekClass.addAll({columnHeaders.elementAt(j): arr});
       }
     }
-    for (TimeTable time in timeTables) {
+   // for (TimeTable time in timeTables)
+    {
        //print("tai${time.toJson()}");
 
       int i = 0;

@@ -94,6 +94,11 @@ class _MyDrawerState extends State<MyDrawer> {
                         Navigator.pushReplacementNamed(context, '/timeTable');
                       }),
                   ListTile(
+                      title: const Text('Music'),
+                      onTap: () {
+                        Navigator.pushReplacementNamed(context, '/musicPage');
+                      }),
+                  ListTile(
                     title: const Text('Add Class'),
                     onTap: () {
                       Navigator.pushReplacementNamed(context, '/addClass');
@@ -103,12 +108,6 @@ class _MyDrawerState extends State<MyDrawer> {
                     title: const Text("Appointment"),
                     onTap: () {
                       Navigator.pushReplacementNamed(context, '/appointment');
-                    },
-                  ),
-                  ListTile(
-                    title: const Text("Report Page"),
-                    onTap: () {
-                      Navigator.pushReplacementNamed(context, '/reportPage');
                     },
                   ),
                   ListTile(
@@ -157,6 +156,12 @@ class _MyDrawerState extends State<MyDrawer> {
                           context, '/excelService');
                     },
                   ),
+                  ListTile(
+                    title: const Text("Stock"),
+                    onTap: (){
+                      Navigator.pushReplacementNamed(context, '/stockPage');
+                    },
+                  )
                   // ListTile(
                   //   title: const Text("HomePage"),
                   //   onTap: () {

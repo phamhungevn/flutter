@@ -4,10 +4,8 @@ import 'package:elabv01/TimeTable/Blocs/timetable_bloc.dart';
 import 'package:elabv01/TimeTable/Blocs/timetable_event.dart';
 import 'package:elabv01/TimeTable/Model/time_table_model.dart';
 import 'package:elabv01/common/theme.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
 import '../ClassPage/class_model.dart';
 import '../Common/footer.dart';
@@ -49,10 +47,10 @@ class TimeTableClass extends StatelessWidget {
     List<String> listClasses = [];
     List<TimeTable> timeTables = [];
     List<User> userList = [];
-    List<ClassList> timeTablesV2 = [];
+   // List<ClassList> timeTablesV2 = [];
     Map<ClassCheck, String> classCheck = {};
     Map<TaskCheck, String> taskCheck = {};
-    bool credit = false;
+    //bool credit = false;
     String className = "";
 
     void addClass(int i, int j, int action, List<int> arr, String teacherId,
@@ -181,7 +179,7 @@ class TimeTableClass extends StatelessWidget {
       for (int i = 0; i < rowHeaders.length; i++) {
         List<Widget> singleRow = []; //For creating a single row
         for (int j = 0; j < columnHeaders.length; j++) {
-          if (credit) {
+         // if (credit) {
             List<int> result = [];
             result = scheduleCheck(i, j, timeTables, classCheck);
             if (result[3] == 1) {
@@ -216,7 +214,8 @@ class TimeTableClass extends StatelessWidget {
                 )),
               ),
             );
-          } else {
+       //   } else
+          {
             bool result = classCheck[ClassCheck(
                     sessionId: rowHeaders[i],
                     dayId: columnHeaders[j],
@@ -279,8 +278,8 @@ class TimeTableClass extends StatelessWidget {
 
     return BlocConsumer<TimeTableBloc, TimeTableState>(
       builder: (BuildContext context, state) {
-        late final ScrollController verticalController = ScrollController();
-        int rowCount = 20;
+        //late final ScrollController verticalController = ScrollController();
+      //  int rowCount = 20;
 
         return Scaffold(
           appBar: AppBar(
@@ -501,7 +500,7 @@ class TimeTableClass extends StatelessWidget {
           timeTables = state.timeTable!;
           //emailList = state.emailList!;
           userList = state.userList!;
-          timeTablesV2 = state.classList!;
+          //timeTablesV2 = state.classList!;
           classCheck = state.classCheck!;
           className = state.className!;
           taskCheck = state.taskCheck!;
@@ -511,101 +510,101 @@ class TimeTableClass extends StatelessWidget {
     );
   }
 
-  Widget _buildCell(BuildContext context, TableVicinity vicinity) {
-    return Center(
-      child: Text('Tile c: ${vicinity.column}, r: ${vicinity.row}'),
-    );
-  }
+  // Widget _buildCell(BuildContext context, TableVicinity vicinity) {
+  //   return Center(
+  //     child: Text('Tile c: ${vicinity.column}, r: ${vicinity.row}'),
+  //   );
+  // }
 
-  TableSpan _buildColumnSpan(int index) {
-    const TableSpanDecoration decoration = TableSpanDecoration(
-      border: TableSpanBorder(
-        trailing: BorderSide(),
-      ),
-    );
+  // TableSpan _buildColumnSpan(int index) {
+  //   const TableSpanDecoration decoration = TableSpanDecoration(
+  //     border: TableSpanBorder(
+  //       trailing: BorderSide(),
+  //     ),
+  //   );
+  //
+  //   switch (index % 5) {
+  //     case 0:
+  //       return TableSpan(
+  //         foregroundDecoration: decoration,
+  //         extent: const FixedTableSpanExtent(100),
+  //         onEnter: (_) => {},//print('Entered column $index'),
+  //         recognizerFactories: <Type, GestureRecognizerFactory>{
+  //           TapGestureRecognizer:
+  //               GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+  //             () => TapGestureRecognizer(),
+  //             (TapGestureRecognizer t) =>
+  //                 t.onTap = () => {},//print('Tap column $index'),
+  //           ),
+  //         },
+  //       );
+  //     case 1:
+  //       return TableSpan(
+  //         foregroundDecoration: decoration,
+  //         extent: const FractionalTableSpanExtent(0.5),
+  //         onEnter: (_) => {},//print('Entered column $index'),
+  //         cursor: SystemMouseCursors.contextMenu,
+  //       );
+  //     case 2:
+  //       return TableSpan(
+  //         foregroundDecoration: decoration,
+  //         extent: const FixedTableSpanExtent(120),
+  //         onEnter: (_) => {},//print('Entered column $index'),
+  //       );
+  //     case 3:
+  //       return TableSpan(
+  //         foregroundDecoration: decoration,
+  //         extent: const FixedTableSpanExtent(145),
+  //         onEnter: (_) => {},//print('Entered column $index'),
+  //       );
+  //     case 4:
+  //       return TableSpan(
+  //         foregroundDecoration: decoration,
+  //         extent: const FixedTableSpanExtent(200),
+  //         onEnter: (_) => {},//print('Entered column $index'),
+  //       );
+  //   }
+  //   throw AssertionError(
+  //       'This should be unreachable, as every index is accounted for in the switch clauses.');
+  // }
 
-    switch (index % 5) {
-      case 0:
-        return TableSpan(
-          foregroundDecoration: decoration,
-          extent: const FixedTableSpanExtent(100),
-          onEnter: (_) => {},//print('Entered column $index'),
-          recognizerFactories: <Type, GestureRecognizerFactory>{
-            TapGestureRecognizer:
-                GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
-              () => TapGestureRecognizer(),
-              (TapGestureRecognizer t) =>
-                  t.onTap = () => {},//print('Tap column $index'),
-            ),
-          },
-        );
-      case 1:
-        return TableSpan(
-          foregroundDecoration: decoration,
-          extent: const FractionalTableSpanExtent(0.5),
-          onEnter: (_) => {},//print('Entered column $index'),
-          cursor: SystemMouseCursors.contextMenu,
-        );
-      case 2:
-        return TableSpan(
-          foregroundDecoration: decoration,
-          extent: const FixedTableSpanExtent(120),
-          onEnter: (_) => {},//print('Entered column $index'),
-        );
-      case 3:
-        return TableSpan(
-          foregroundDecoration: decoration,
-          extent: const FixedTableSpanExtent(145),
-          onEnter: (_) => {},//print('Entered column $index'),
-        );
-      case 4:
-        return TableSpan(
-          foregroundDecoration: decoration,
-          extent: const FixedTableSpanExtent(200),
-          onEnter: (_) => {},//print('Entered column $index'),
-        );
-    }
-    throw AssertionError(
-        'This should be unreachable, as every index is accounted for in the switch clauses.');
-  }
-
-  TableSpan _buildRowSpan(int index) {
-    final TableSpanDecoration decoration = TableSpanDecoration(
-      color: index.isEven ? Colors.purple[100] : null,
-      border: const TableSpanBorder(
-        trailing: BorderSide(
-          width: 3,
-        ),
-      ),
-    );
-
-    switch (index % 3) {
-      case 0:
-        return TableSpan(
-          backgroundDecoration: decoration,
-          extent: const FixedTableSpanExtent(50),
-          recognizerFactories: <Type, GestureRecognizerFactory>{
-            TapGestureRecognizer:
-                GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
-              () => TapGestureRecognizer(),
-              (TapGestureRecognizer t) =>
-                  t.onTap = () => {},//print('Tap row $index'),
-            ),
-          },
-        );
-      case 1:
-        return TableSpan(
-          backgroundDecoration: decoration,
-          extent: const FixedTableSpanExtent(65),
-          cursor: SystemMouseCursors.click,
-        );
-      case 2:
-        return TableSpan(
-          backgroundDecoration: decoration,
-          extent: const FractionalTableSpanExtent(0.15),
-        );
-    }
-    throw AssertionError(
-        'This should be unreachable, as every index is accounted for in the switch clauses.');
-  }
+  // TableSpan _buildRowSpan(int index) {
+  //   final TableSpanDecoration decoration = TableSpanDecoration(
+  //     color: index.isEven ? Colors.purple[100] : null,
+  //     border: const TableSpanBorder(
+  //       trailing: BorderSide(
+  //         width: 3,
+  //       ),
+  //     ),
+  //   );
+  //
+  //   switch (index % 3) {
+  //     case 0:
+  //       return TableSpan(
+  //         backgroundDecoration: decoration,
+  //         extent: const FixedTableSpanExtent(50),
+  //         recognizerFactories: <Type, GestureRecognizerFactory>{
+  //           TapGestureRecognizer:
+  //               GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+  //             () => TapGestureRecognizer(),
+  //             (TapGestureRecognizer t) =>
+  //                 t.onTap = () => {},//print('Tap row $index'),
+  //           ),
+  //         },
+  //       );
+  //     case 1:
+  //       return TableSpan(
+  //         backgroundDecoration: decoration,
+  //         extent: const FixedTableSpanExtent(65),
+  //         cursor: SystemMouseCursors.click,
+  //       );
+  //     case 2:
+  //       return TableSpan(
+  //         backgroundDecoration: decoration,
+  //         extent: const FractionalTableSpanExtent(0.15),
+  //       );
+  //   }
+  //   throw AssertionError(
+  //       'This should be unreachable, as every index is accounted for in the switch clauses.');
+  // }
 }

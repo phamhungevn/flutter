@@ -49,13 +49,13 @@ class CameraService {
       );
     } else {
       bool kt =false;
-      for (var i = 0; i < cameras.length; i++) {
-        if (cameras[i].lensDirection == CameraLensDirection.front) {
-          cameraIndex = i;
-          kt = true;
-          break;
-        }
-      }
+      // for (var i = 0; i < cameras.length; i++) {
+      //   if (cameras[i].lensDirection == CameraLensDirection.front) {
+      //     cameraIndex = i;
+      //     kt = true;
+      //     break;
+      //   }
+      // }
       if (!kt){
         for (var i = 0; i < cameras.length; i++) {
           if (cameras[i].lensDirection == CameraLensDirection.back &&

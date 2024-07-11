@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:elabv01/StockPage/Model/stock_model.dart';
 import 'package:elabv01/TimeTable/Model/time_table_model.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -12,7 +13,7 @@ import '../LoginPage/Model/user.model.dart';
 
 class DatabaseHelper {
   static const _databaseName = "MyDatabase.db";
-  static const _databaseVersion = 5;
+  static const _databaseVersion = 6;
 
   static const tableUsers = 'users';
   static const columnId = 'id';
@@ -23,6 +24,7 @@ class DatabaseHelper {
   static const columnEmail = 'email';
   static const columnUpdatedDate = 'updatedDate';
   static const columnUserImage = 'userImage';
+  static const columnLevel = 'level';
 
   ///
   static const timeTable = 'timetable';
@@ -53,6 +55,14 @@ class DatabaseHelper {
   static const columnResultId = 'resultId';
   static const columnScore = 'score';
 
+  //Stock
+  static const stockTable = 'stocks';
+  static const columnStockName = 'name';
+  static const columnStockPrice = 'price';
+
+  static const stockBasisTable = 'baseStock';
+  static const columnParameters = 'parameters';
+
   DatabaseHelper._privateConstructor();
 
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -63,10 +73,10 @@ class DatabaseHelper {
     _database = await _initDatabase();
     return _database;
   }
-
+  String path ='';
   _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, _databaseName);
+    path = join(documentsDirectory.path, _databaseName);
     return await openDatabase(path,
         version: _databaseVersion, onCreate: _onCreate);
   }
@@ -75,6 +85,7 @@ class DatabaseHelper {
     //await db.execute("DELETE FROM $questionsTable");
     //   await db.execute("DELETE FROM $tableUsers");
     await db.execute("DROP TABLE IF EXISTS $accountTable");
+    await db.execute("DROP TABLE IF EXISTS $stockBasisTable");
     await db.execute('''
           CREATE TABLE $accountTable (
             $columnUserId TEXT PRIMARY KEY NOT NULL,
@@ -84,7 +95,8 @@ class DatabaseHelper {
             $columnUserImage TEXT,
             $columnEmail TEXT,
             $columnStatus INTEGER,
-            $columnUpdatedDate INTEGER
+            $columnUpdatedDate INTEGER,
+            $columnLevel INTEGER
           )
           ''');
     await db.execute('''
@@ -105,7 +117,8 @@ class DatabaseHelper {
             $columnUserImage TEXT,
             $columnEmail TEXT,
             $columnStatus INTEGER,
-            $columnUpdatedDate INTEGER
+            $columnUpdatedDate INTEGER,
+            $columnLevel INTEGER
           )
           ''');
     await db.execute('''
@@ -138,8 +151,18 @@ class DatabaseHelper {
             $columnFromDate INTEGER  
           )
           ''');
+    await db.execute(
+        '''CREATE TABLE $stockTable($columnStockName TEXT PRIMARY KEY NOT NULL,
+            $columnStockPrice TEXT )''');
+    await db.execute(
+        '''CREATE TABLE $stockBasisTable($columnStockName TEXT PRIMARY KEY NOT NULL, $columnParameters TEXT)''');
   }
-
+  String getDatabasePath(){
+    return path;
+  }
+  String getDatabaseName(){
+    return _databaseName;
+  }
   Future<int> insert(User user) async {
     try {
       Database db = await instance.database;
@@ -191,6 +214,47 @@ class DatabaseHelper {
     } catch (e) {
       log("khong ghi dược $e");
       return -1;
+    }
+  }
+
+  Future<int> insertStockPrice(StockModel stockModel) async {
+    try {
+      Database database = await instance.database;
+      return await database.insert(stockTable, stockModel.toMap());
+    } catch (e) {
+      log("Khong them dươc gia stock $e");
+      return -1;
+    }
+  }
+
+  Future<int> insertStockBasis(StockBasisModel stockBasisModel) async {
+    try {
+      Database database = await instance.database;
+      return await database.insert(stockBasisTable, stockBasisModel.toMap());
+    } catch (e) {
+      log("khong thêm duoc stock basis $e");
+      return -1;
+    }
+  }
+
+  Future<List<StockBasisModel>> queryAllStockBasis() async {
+    try {
+      Database db = await instance.database;
+      List<Map<String, dynamic>> stockBasis = await db.query(stockBasisTable);
+      return stockBasis.map((e) => StockBasisModel.fromMap(e)).toList();
+    } catch (e) {
+      log("can not query db");
+      return [];
+    }
+  }
+
+  Future<List<StockModel>> queryAllStockPrice() async {
+    try {
+      Database db = await instance.database;
+      List<Map<String, dynamic>> stockPrices = await db.query(stockTable);
+      return stockPrices.map((e) => StockModel.fromMap(e)).toList();
+    } catch (e) {
+      return [];
     }
   }
 
@@ -246,8 +310,7 @@ class DatabaseHelper {
         listQuestion =
             await db.query(questionsTable, where: where, whereArgs: [arg]);
       } else {
-        listQuestion =
-            await db.query(questionsTable);
+        listQuestion = await db.query(questionsTable);
       }
 
       // for (QuestionExam time in listQuestion) {
@@ -311,6 +374,27 @@ class DatabaseHelper {
           where: '$columnUserId = ?', whereArgs: [user.userId]);
     } catch (e) {
       log(e.toString());
+      return -1;
+    }
+  }
+
+  Future<int> updateStock(StockModel stockModel) async {
+    Database db = await instance.database;
+    try {
+      return await db.update(stockTable, stockModel.toMap(),
+          where: '$columnStockName= ?', whereArgs: [stockModel.name]);
+    } catch (e) {
+      return -1;
+    }
+  }
+
+  Future<int> updateStockBasis(StockBasisModel stockBasisModel) async {
+    Database db = await instance.database;
+    try {
+      return await db.update(stockBasisTable, stockBasisModel.toMap(),
+          where: '$columnStockName=?', whereArgs: [stockBasisModel.name]);
+    } catch (e) {
+      log('can not update $e');
       return -1;
     }
   }

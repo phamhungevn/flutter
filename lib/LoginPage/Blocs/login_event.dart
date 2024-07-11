@@ -26,6 +26,9 @@ class LoginEventCheck extends LoginEvent {
 class LogoutEvent extends LoginEvent {
   LogoutEvent();
 }
+class LoginLoadingEvent extends LoginEvent {
+  LoginLoadingEvent();
+}
 
 // const factory
 // LoginEvent.logout()

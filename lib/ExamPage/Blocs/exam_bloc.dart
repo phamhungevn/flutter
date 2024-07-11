@@ -49,7 +49,8 @@ class ExamBloc extends Bloc<ExamEvent, ExamState> {
       List<QuestionExam> firebaseList = [];
       bool totalCheck = false;
       bool check;
-      if (event.listQuestion != null) {
+   //   if (event.listQuestion != null)
+      {
         firebaseList = event.listQuestion;
         for (QuestionExam questionExam in firebaseList) {
           check = false;
@@ -75,7 +76,7 @@ class ExamBloc extends Bloc<ExamEvent, ExamState> {
           listQuestions: listQuestions,
           index: index,
         ));
-        print("xuat ra trang thai moi ${listQuestions.length}");
+        //print("xuat ra trang thai moi ${listQuestions.length}");
       }
     });
     on<ExamQuestionEventLoading>((event, emit) async {

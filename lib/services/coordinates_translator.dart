@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 
+
 double translateX(
     double x, InputImageRotation rotation, Size size, Size absoluteImageSize) {
   switch (rotation) {

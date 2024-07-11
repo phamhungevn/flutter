@@ -8,6 +8,7 @@ class User {
   List modelData;
   List<UserImage> userImage;
   int updatedDate;
+  int? level;
 //  Map<int, bool>? attendanceList;
   int? status;
 
@@ -20,6 +21,7 @@ class User {
       required this.userImage,
       required this.updatedDate,
       //   this.attendanceList,
+      this.level,
       this.status});
 
   static User fromMap(Map<String, dynamic> user) {
@@ -32,6 +34,7 @@ class User {
         modelData: jsonDecode(user['model_data'])?? "[]",
         //  attendanceList: user['attendanceList'],
         status: user['status']?? '0',
+        level: user['level']?? 0,
         updatedDate: user['updatedDate']?? 0,
         userImage: (jsonDecode(user['userImage']) as List).map((e)=>UserImage.fromMap(e)).toList()
     );
@@ -46,6 +49,7 @@ class User {
       'model_data': jsonEncode(modelData),
       //'attendanceList': attendanceList,
       'status': status,
+      'level': level,
       'updatedDate': updatedDate,
       'userImage': jsonEncode(userImage.map((e) => e.toMap()).toList())
     };

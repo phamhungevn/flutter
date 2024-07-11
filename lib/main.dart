@@ -1,5 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:elabv01/ClassPage/class_room.dart';
+import 'package:elabv01/StockPage/stock_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'AppointmentPage/appointment.dart';
 import 'DocumentScanner/document_scan.dart';
@@ -7,9 +8,10 @@ import 'ExamPage/exam_page.dart';
 import 'ExamPage/exam_question.dart';
 import 'ExcelPage/excel_example.dart';
 import 'HomePage/home_page.dart';
+import 'LoginPage/View/login.dart';
 import 'MachineTest/machine_test.dart';
+import 'MusicPage/music_page.dart';
 import 'ReadPDFPage/pdf_reader.dart';
-import 'ReportPage/report_page.dart';
 import 'SpeechToText/speech_to_text.dart';
 import 'StudentList/student_list.dart';
 import 'common/theme.dart';
@@ -19,7 +21,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 
 import 'EditProfile/edit_profile.dart';
-import 'LoginPage/View/login.dart';
 import 'matched_users.dart';
 import 'TakePicture/take_picture.dart';
 import 'TimeTable/timetable.dart';
@@ -96,17 +97,16 @@ class MyApp extends StatelessWidget {
             '/error': (context) => const ErrorPage(
                   message: "",
                 ),
-            '/reportPage': (context) => const ReportPage(
-                  title: 'Hung',
-                ),
             '/pdfRead': (context) => const PDFReader(),
             '/documentScanner': (context) => const DocumentScan(),
             '/speechRecord': (context) => const SpeechSampleApp(),
             '/examPage': (context) => ExamPage.provider(indexExam: ''),
             '/homePage': (context) => const HomePage(),
             '/examQuestionPage': (context) =>ExamQuestionPage.provider(),
+            '/musicPage': (context) =>MusicPage.provider(),
             '/machineService': (context) =>TakePicture2.provider(),
-            '/excelService': (context) =>const ExcelPage()
+            '/excelService': (context) =>const ExcelPage(),
+            '/stockPage': (context) => StockPage.provider()
           }
           //home: const MyHomePage(title: 'Flutter Demo Home Page'),
           ),

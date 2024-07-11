@@ -1,12 +1,11 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 
 import 'package:excel/excel.dart';
-import 'dart:io';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:open_file/open_file.dart' as open_file;
 import 'package:path_provider/path_provider.dart' as path_provider;
@@ -64,7 +63,9 @@ class ExcelPage extends StatelessWidget {
     if (result != null) {
       // File
       file = File(result.files.single.path!);
-      print("dia chi$file.path");
+      if (kDebugMode) {
+        print("dia chi$file.path");
+      }
     } else {
       // User canceled the picker
     }
@@ -288,7 +289,8 @@ class ExcelPage extends StatelessWidget {
     //   print("da ghi$path");
     // }
     PermissionStatus status = await Permission.storage.request();
-    if ((fileBytes != null) && (status == PermissionStatus.granted)) {
+    if ((status == PermissionStatus.granted)) {
+     // if ((fileBytes != null) && (status == PermissionStatus.granted)) {
       await File(path).writeAsBytes(fileBytes, flush: true).then((value) {
         log('saved');
       });

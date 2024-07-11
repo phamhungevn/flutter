@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
@@ -122,7 +123,9 @@ class _SpeechSampleAppState extends State<SpeechSampleApp> {
     try{
       speech.stop();
       await Future.delayed(const Duration(milliseconds: 50));
-      print('start listening');
+      if (kDebugMode) {
+        print('start listening');
+      }
       //lastWords = currentWords;
    //   currentWords ='';
    //   lastError = '';
@@ -154,7 +157,9 @@ class _SpeechSampleAppState extends State<SpeechSampleApp> {
   }
 
   void stopListening() {
-    print('stop');
+    if (kDebugMode) {
+      print('stop');
+    }
     speech.stop();
     onRecord = false;
     setState(() {
@@ -163,7 +168,9 @@ class _SpeechSampleAppState extends State<SpeechSampleApp> {
   }
 
   void cancelListening() {
-    print('cancel');
+    if (kDebugMode) {
+      print('cancel');
+    }
     speech.cancel();
     setState(() {
       level = 0.0;
@@ -177,9 +184,13 @@ class _SpeechSampleAppState extends State<SpeechSampleApp> {
         'Result listener final: ${result.finalResult}, words: ${result.recognizedWords}');
     setState(() {
      numLines++;
-     print("da tăng $numLines");
+     if (kDebugMode) {
+       print("da tăng $numLines");
+     }
      if (numLines > 10){
-       print("da xoa");
+       if (kDebugMode) {
+         print("da xoa");
+       }
        lastWords += '\n${result.recognizedWords} - ${result.finalResult}';
        currentWords = result.recognizedWords;
     //   lastWords="";
@@ -192,7 +203,9 @@ class _SpeechSampleAppState extends State<SpeechSampleApp> {
   //    lastWords += "\n$currentWords";
 
     });
-    print("current result $currentWords");
+    if (kDebugMode) {
+      print("current result $currentWords");
+    }
    // print("final $result.finalResult");
   }
 
@@ -208,8 +221,10 @@ class _SpeechSampleAppState extends State<SpeechSampleApp> {
   Future<void> errorListener(SpeechRecognitionError error) async {
     _logEvent(
         'Received error status: $error, listening: ${speech.isListening}');
-     print(
+     if (kDebugMode) {
+       print(
         '1 Received error status: $error, listening: ${speech.isListening}');
+     }
   //  await Future.delayed(const Duration(milliseconds: 50));
   //  await startListening();
     setState(() {
@@ -223,14 +238,18 @@ class _SpeechSampleAppState extends State<SpeechSampleApp> {
     //print(
       //  ' 2 Received listener status: $status, listening: ${speech.isListening}');
     if ((status != SpeechToText.listeningStatus) && onRecord ){
-      print('vao day status 1 $status');
+      if (kDebugMode) {
+        print('vao day status 1 $status');
+      }
       if (currentWords.isNotEmpty){
         setState(() {
         //  lastWords += " $currentWords";
        //   currentWords = "";
        //   lastStatus = status;
         });
-        print('vao day status 2 Lastword $lastWords');
+        if (kDebugMode) {
+          print('vao day status 2 Lastword $lastWords');
+        }
       }else{
     //    await Future.delayed(const Duration(milliseconds: 50));
       }

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -16,12 +17,13 @@ import '../Blocs/login_bloc.dart';
 import '../Blocs/login_event.dart';
 import '../Blocs/login_state.dart';
 
+
 class MyLogin extends StatefulWidget {
   const MyLogin({Key? key}) : super(key: key);
 
   static provider() {
     return BlocProvider(
-      create: ((context) => LoginBloc()),
+      create: ((context) => LoginBloc()..add(LoginLoadingEvent())),
       child: const MyLogin(),
     );
   }
@@ -48,8 +50,6 @@ class _MyLoginState extends State<MyLogin> {
   }
 
   Widget _buildBody() {
-    //  final GoogleSignInAccount? user = _currentUser;
-    //  if (user != null) {
     if (signedIn) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -94,39 +94,39 @@ class _MyLoginState extends State<MyLogin> {
     loading = false;
 
     return BlocConsumer<LoginBloc, LoginState>(builder: (context, state) {
-      //final app = locator<FirebaseFirestore>();
+
       final CollectionReference usersFirebase =
           FirebaseFirestore.instance.collection('users');
       return Scaffold(
         body: StreamBuilder(
           stream: usersFirebase.snapshots(), //usersRef.snapshots(),//
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-            if (snapshot.hasData) {
-              final List<DocumentSnapshot> documentSnapshots =
-                  snapshot.data!.docs;
-              // try {
-              //   List<User> userList = documentSnapshots
-              //       .map((e) => User(
-              //           userId: e['userId'] ?? '',
-              //           user: e['user'] ?? '',
-              //           password: e['password'] ?? '',
-              //           email: e['email'] ?? '',
-              //           modelData: jsonDecode(e['model_data']) ?? [],
-              //           status: e['status'] ?? 0,
-              //           updatedDate: e['updatedDate'] ?? 0,
-              //           userImage: (jsonDecode(e['userImage']) as List)
-              //               .map((e) => UserImage.fromMap(e))
-              //               .toList()))
-              //       .toList();
-              //
-              //   context
-              //       .read<LoginBloc>()
-              //       .add(LoginUpdateListEvent(userList: userList));
-              // } catch (e) {
-              //   log(e.toString());
-              // }
-
-            }
+            // if (snapshot.hasData) {
+            //  final List<DocumentSnapshot> documentSnapshots =
+            //      snapshot.data!.docs;
+            //   try {
+            //     List<User> userList = documentSnapshots
+            //         .map((e) => User(
+            //             userId: e['userId'] ?? '',
+            //             user: e['user'] ?? '',
+            //             password: e['password'] ?? '',
+            //             email: e['email'] ?? '',
+            //             modelData: jsonDecode(e['model_data']) ?? [],
+            //             status: e['status'] ?? 0,
+            //             updatedDate: e['updatedDate'] ?? 0,
+            //             userImage: (jsonDecode(e['userImage']) as List)
+            //                 .map((e) => UserImage.fromMap(e))
+            //                 .toList()))
+            //         .toList();
+            //
+            //     context
+            //         .read<LoginBloc>()
+            //         .add(LoginUpdateListEvent(userList: userList));
+            //   } catch (e) {
+            //     log(e.toString());
+            //   }
+            //
+            // }
             return Center(
               child: Container(
                 padding: const EdgeInsets.all(10.0),
@@ -246,22 +246,7 @@ class _MyLoginState extends State<MyLogin> {
       //handleSignOut();
       // }
     });
-    //   BlocBuilder<LoginBloc, LoginState>(
-    //   builder: (context, state) {
-    //     return state.maybeMap(
-    //          loaded: (state) {
-    //           return const PersonDisplay();
-    //          },
-    //       error: (state){
-    //            return ErrorPage(message: state.message.toString());
-    //       },
-    //       orElse: () {
-    //        // handleSignOut();
-    //
-    //       },
-    //     );
-    //   },
-    // );
+
   }
 }
 

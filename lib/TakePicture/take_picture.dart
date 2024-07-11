@@ -5,9 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:elabv01/TakePicture/TakePictureBloc/take_picture_bloc.dart';
-//import 'dart:math' as math;
-import '../common/edit_text.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+
+import 'TakePictureBloc/take_picture_event.dart';
+import 'TakePictureBloc/take_picture_state.dart';
 
 class TakePicture extends StatefulWidget {
   const TakePicture({
@@ -15,12 +16,14 @@ class TakePicture extends StatefulWidget {
   }) : super(key: key);
 
   static provider() {
-    return BlocProvider(create: (BuildContext context) {
-     return TakePictureBloc();
-       //..add(const TakePictureEvent.loading());
-    },
-    child: const TakePicture());
+    return BlocProvider(
+        create: (BuildContext context) {
+          return TakePictureBloc();
+          //..add(const TakePictureEvent.loading());
+        },
+        child: const TakePicture());
   }
+
   @override
   State<TakePicture> createState() => _TakePicture();
 }
@@ -29,6 +32,7 @@ class _TakePicture extends State<TakePicture> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
   List<CameraDescription> cameras = [];
+
   ////
   final FaceDetector _faceDetector = FaceDetector(
     options: FaceDetectorOptions(
@@ -36,10 +40,11 @@ class _TakePicture extends State<TakePicture> {
       enableClassification: true,
     ),
   );
+
   // bool _canProcess = true;
   // bool _isBusy = false;
   //CustomPaint? _customPaint;
- // String? _text;
+  // String? _text;
   ///
   @override
   void dispose() {
@@ -48,6 +53,7 @@ class _TakePicture extends State<TakePicture> {
     _controller.dispose();
     super.dispose();
   }
+
   Future<void> onTakePicture() async {
     try {
       await _initializeControllerFuture;
@@ -57,36 +63,37 @@ class _TakePicture extends State<TakePicture> {
       log(e.toString());
     }
   }
-  void init(){
-    context.read<TakePictureBloc>().add(const TakePictureEvent.loaded());
+
+  void init() {
+    context.read<TakePictureBloc>().add(LoadingTakePictureEvent());
   }
+
   Future<void> initCameras(BuildContext context) async {
     try {
       WidgetsFlutterBinding.ensureInitialized();
       cameras = await availableCameras();
       //print("da khoi dong xong 1"+cameras.length.toString());
       init();
-    } catch(e){
-    //  print('Error in fetching the cameras: $e');
+    } catch (e) {
+      //  print('Error in fetching the cameras: $e');
     }
   }
+
   void onNewCameraSelected(CameraDescription cameraDescription) async {
-   // final previousCameraController = _controller;
+    // final previousCameraController = _controller;
     _controller = CameraController(
       cameraDescription,
       ResolutionPreset.medium,
       imageFormatGroup: ImageFormatGroup.jpeg,
     );
     // Dispose the previous controller
-  //  await previousCameraController?.dispose();
+    //  await previousCameraController?.dispose();
     _initializeControllerFuture = _controller.initialize();
   }
 
   @override
   void initState() {
-
     super.initState();
-
   }
 
   @override
@@ -98,59 +105,50 @@ class _TakePicture extends State<TakePicture> {
     //print("da khoi dong xong 2"+cameras.length.toString());
 
     //onNewCameraSelected(args.camera);
-   //
+    //
     return BlocBuilder<TakePictureBloc, TakePictureState>(
-      builder: (BuildContext context, state) {
-        return state.maybeMap(
-            loading: (state) {
-              return const Scaffold(body: TextCommon(label: "running"));
-            },
-            orElse: (){
-              onNewCameraSelected(cameras.first);
-            return  Scaffold(
-              appBar: AppBar(title: const Text('Take a picture')),
-              body: FutureBuilder<void>(
-                future: _initializeControllerFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return
-                      Transform.rotate(
-                        angle: 0,//-math.pi / 2,
-                        child:  CameraPreview(_controller),
-                        // CameraView(
-                        //   title: 'Face Detector',
-                        //   customPaint: _customPaint,
-                        //   text: _text,
-                        //   onImage: (inputImage) {
-                        //     processImage(inputImage);
-                        //   },
-                        //   initialDirection: CameraLensDirection.front,
-                        // )
-                      );
-                  } else {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                },
-              ),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () async {
-                  try {
-                    await _initializeControllerFuture;
-                    final image = await _controller.takePicture();
-                    if (!mounted) return;
-                    Navigator.of(context).pop(image.path);
-                  } catch (e) {
-                    // If an error occurs, log the error to the console.
-                    log(e.toString());
-                  }
-                },
-                child: const Icon(Icons.camera_alt),
-              ),
-            );
-
-      });
-    },);
-
+        builder: (BuildContext context, state) {
+      onNewCameraSelected(cameras.first);
+      return Scaffold(
+        appBar: AppBar(title: const Text('Take a picture')),
+        body: FutureBuilder<void>(
+          future: _initializeControllerFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return Transform.rotate(
+                angle: 0, //-math.pi / 2,
+                child: CameraPreview(_controller),
+                // CameraView(
+                //   title: 'Face Detector',
+                //   customPaint: _customPaint,
+                //   text: _text,
+                //   onImage: (inputImage) {
+                //     processImage(inputImage);
+                //   },
+                //   initialDirection: CameraLensDirection.front,
+                // )
+              );
+            } else {
+              return const Center(child: CircularProgressIndicator());
+            }
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            try {
+              await _initializeControllerFuture;
+              final image = await _controller.takePicture();
+              if (!mounted) return;
+              Navigator.of(context).pop(image.path);
+            } catch (e) {
+              // If an error occurs, log the error to the console.
+              log(e.toString());
+            }
+          },
+          child: const Icon(Icons.camera_alt),
+        ),
+      );
+    });
   }
 }
 
@@ -210,7 +208,6 @@ class DisplayPictureScreen extends StatelessWidget {
                             context,
                             ModalRoute.withName("/editProfile"),
                           );
-
                         },
                       ),
                     ),

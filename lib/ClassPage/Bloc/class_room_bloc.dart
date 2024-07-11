@@ -13,7 +13,6 @@ class ClassRoomBloc extends Bloc<ClassRoomEvent, ClassRoomState> {
     on<RoomAddEvent>(addClass);
     //on<ClassRoomAllEvent>(queryAllClass);
     on<ClassRoomAllEvent>((event, emit) async {
-   //   emit(ClassRoomState());
       await queryAllClass(event, emit);
      // print("goi vao 31${classRooms.length}");
       emit(ClassRoomLoadedState(classRooms: classRooms));

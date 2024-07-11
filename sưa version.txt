@@ -1,0 +1,12 @@
+https://riptutorial.com/android/example/6058/download-image-using-asynctask-in-android
+https://www.geeksforgeeks.org/how-to-get-current-location-in-android/
+
+///
+in android/gradle/wrapper/gradle-wrapper.properties distributionUrl=https\://services.gradle.org/distributions/gradle-7.4-all.zip
+jvmTarget = '1.8'
+ext.kotlin_version = '1.7.10'
+ dependencies {
+        classpath 'com.android.tools.build:gradle:7.1.3'
+classpath 'com.google.gms:google-services:4.3.13'
+//gradle properties
+org.gradle.jvmargs=-Xmx1536MXmx1536M

@@ -1,20 +1,26 @@
 import 'dart:developer';
+import 'dart:io';
+import 'dart:isolate';
 import 'package:camera/camera.dart';
+import 'package:elabv01/MachineTest/MachineBloc/machine_state.dart';
+import 'package:elabv01/common/theme.dart';
+import 'package:elabv01/common/widgets/button_common.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:elabv01/TakePicture/TakePictureBloc/take_picture_bloc.dart';
 import 'package:tflite_flutter/tflite_flutter.dart' as tfl;
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as imglib;
-import '../common/edit_text.dart';
+import '../ImageClassify/image_classifiy.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 import '../services/camera.service.dart';
 import '../services/face_detector_service.dart';
-import '../services/face_painter.dart';
+
 import '../services/image_converter.dart';
 import '../services/locator.dart';
+import 'MachineBloc/machine_bloc.dart';
+import 'MachineBloc/machine_event.dart';
 
 class TakePicture2 extends StatefulWidget {
   const TakePicture2({
@@ -24,7 +30,7 @@ class TakePicture2 extends StatefulWidget {
   static provider() {
     return BlocProvider(
         create: (BuildContext context) {
-          return TakePictureBloc()..add(const TakePictureEvent.loaded());
+          return MachineBloc()..add(MachineEventLoading());
         },
         child: const TakePicture2());
   }
@@ -34,8 +40,16 @@ class TakePicture2 extends StatefulWidget {
 }
 
 class _TakePicture2 extends State<TakePicture2> {
-  late CameraController _controller;
-  bool _isInitializing = false;
+  //moi
+  final classifier = ImageClassifier();
+  final isolateUtils = IsolateUtils();
+  DetectionClasses detected = DetectionClasses.daisy;
+  String nameFlower = DetectionClasses.daisy.toString();
+
+  // het moi
+
+ // bool _isInitializing = false;
+  bool loading = true;
   bool processing = false;
   List<CameraDescription> cameras = [];
   Interpreter? interpreter;
@@ -51,24 +65,38 @@ class _TakePicture2 extends State<TakePicture2> {
     ),
   );
 
+  Future<void> initialise() async {}
+
+  Future<DetectionClasses> inference(CameraImage cameraImage) async {
+    ReceivePort responsePort = ReceivePort();
+    final isolateData = IsolateData(
+      cameraImage: cameraImage,
+      interpreterAddress: classifier.interpreter.address,
+      responsePort: responsePort.sendPort,
+    );
+
+    isolateUtils.sendPort.send(isolateData);
+    var result = await responsePort.first;
+
+    return result;
+  }
 
   @override
   void dispose() {
     //_canProcess = false;
     _faceDetector.close();
-
+    isolateUtils.dispose();
     super.dispose();
   }
 
   Future<void> onTakePicture() async {
     try {
-      //    await _initializeControllerFuture;
-
       //final XFile image = await _controller.takePicture();
     } catch (e) {
       log(e.toString());
     }
   }
+
   void setCurrentPrediction(CameraImage cameraImage, Face? face) {
     if (interpreter == null) throw Exception('Interpreter is null');
     if (face == null) throw Exception('Face is null');
@@ -79,13 +107,17 @@ class _TakePicture2 extends State<TakePicture2> {
     //  print("Predict 2 ${ output.first}");
     interpreter?.run(input, output);
     output = output.reshape([192]);
-    print("Predict 3 ${output}");
+    if (kDebugMode) {
+      print("Predict 3 $output");
+    }
     //_predictedData = List.from(output);
     //   print("Predict 3 Hung ${ _predictedData.first.toString()}");
   }
+
   Future<void> predictFacesFromImage({@required CameraImage? image}) async {
     assert(image != null, 'Image is null');
-    interpreter = await tfl.Interpreter.fromAsset('assets/mobilefacenet.tflite');//fromAsset('assets/model.tflite');
+    interpreter = await tfl.Interpreter.fromAsset(
+        'assets/mobilefacenet.tflite'); //fromAsset('assets/model.tflite');
     // interpreter.run(image!, output);
     //moi them
     _faceDetectorService.initialize();
@@ -98,25 +130,67 @@ class _TakePicture2 extends State<TakePicture2> {
     }
     // if (mounted) setState(() {});
   }
-  Future<void> init() async {
-    setState(() => _isInitializing = true);
-    await _cameraService.initialize();
-    setState(() => _isInitializing = false);
-    _cameraService.cameraController?.startImageStream((CameraImage image) async {
-      if (processing)
-        return; // prevents unnecessary overprocessing.
-      processing = true;
-      await predictFacesFromImage(image: image);
-      processing = false;
-    });
+
+  Future<void> predictFlowerFromImage({@required CameraImage? image}) async {
+    assert(image != null, 'Image is null');
+    if (kDebugMode) {
+      print("dang du doan");
+    }
+    // DetectionClasses results = await classifier.predict(convertToImage(image!));
+    final results = await inference(image!);
+    if (kDebugMode) {
+      print("da doan $results");
+    }
+    detected = results;
+    if (detected.toString() != nameFlower) {
+      setState(() {
+        nameFlower = detected.toString();
+      });
+    }
   }
 
+  Future<void> predictFlowerFromFile({@required imglib.Image? image}) async {
+    DetectionClasses results = await classifier.predict(image!);
+    detected = results;
+    if (detected.toString() != nameFlower) {
+      setState(() {
+        nameFlower = detected.toString();
+      });
+    }
+  }
+
+  Future<void> init() async {
+    imglib.Image? originalImage = imglib.decodeImage(File(
+            "/data/user/0/com.example.elabv01/cache/CAP2264483761101635861.jpg")
+        .readAsBytesSync());
+    await classifier.loadModel();
+    //setState(() => _isInitializing = true);
+    await isolateUtils.start();
+    await _cameraService.initialize();
+   // setState(() => _isInitializing = false);
+    if (_cameraService.cameraController != null) {
+      setState(() {
+        nameFlower = "khởi động";
+      });
+    }
+    await predictFlowerFromFile(image: originalImage);
+    //  _cameraService.cameraController
+    //      ?.startImageStream((CameraImage image) async {
+    //    if (processing) {
+    //      return;
+    //    }
+    //    processing = true;
+    // //   await predictFlowerFromImage(image: image);
+    //    processing = false;
+    //  });
+  }
 
   imglib.Image convertCameraImage(CameraImage image) {
     var img = convertToImage(image);
     var img1 = imglib.copyRotate(img, -90);
     return img1;
   }
+
   imglib.Image _cropFace(CameraImage image, Face faceDetected) {
     imglib.Image convertedImage = convertCameraImage(image);
     double x = faceDetected.boundingBox.left - 10.0;
@@ -155,72 +229,89 @@ class _TakePicture2 extends State<TakePicture2> {
     return imageAsList;
   }
 
-
-
-
-
-  imglib.Image _convertCameraImage(CameraImage image) {
-    var img = convertToImage(image);
-    var img1 = imglib.copyRotate(img, -90);
-    return img1;
-  }
-
+  // imglib.Image _convertCameraImage(CameraImage image) {
+  //   var img = convertToImage(image);
+  //   var img1 = imglib.copyRotate(img, -90);
+  //   return img1;
+  // }
 
   @override
   void initState() {
-    init();
+    //init();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
 
-    //print("da khoi dong xong 2"+cameras.length.toString());
-
-    //onNewCameraSelected(args.camera);
-    //
-    return BlocBuilder<TakePictureBloc, TakePictureState>(
+    return BlocConsumer<MachineBloc, MachineState>(
       builder: (BuildContext context, state) {
-        return state.maybeMap(loading: (state) {
-          return const Scaffold(body: TextCommon(label: "running"));
-        }, orElse: () {
-          if (_isInitializing) return const Center(child: CircularProgressIndicator());
-          return
-            Scaffold(
-            appBar: AppBar(title: const Text('Take a picture')),
-            body:
-
-                Stack(fit: StackFit.expand, children: <Widget>[
-              CameraPreview(_cameraService.cameraController!),
-              if (_faceDetectorService.faceDetected)
-                CustomPaint(
-                  painter: FacePainter(
-                    face: _faceDetectorService.faces[0],
-                    imageSize: _cameraService.getImageSize(),
+         if (!loading){ return Scaffold(
+          appBar: AppBar(title: const Text('AI Test')),
+          body: Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              Column(
+                children: [
+                  SizedBox(
+                    height: 300,
+                    child: CameraPreview(_cameraService.cameraController!),
                   ),
-                )
-            ],)
+                  if (state.imagePath != "")
+                    SizedBox(
+                      height: 200,
+                      child: Image.file(File(state.imagePath!)),
+                    ),
+                  Text(state.nameFlower!),
+                  ButtonCommon(
+                      label: "Import",
+                      onTap: () {
+                        context
+                            .read<MachineBloc>()
+                            .add(MachineEventUploadImage());
+                      },
+                      color: appTheme.primaryColor,
+                      padding: 3)
+                ],
+              )
+            ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () async {
+              try {
+                final image =
+                    await _cameraService.cameraController!.takePicture();
+                if (!mounted) return;
 
-            ,
-            floatingActionButton: FloatingActionButton(
-              onPressed: () async {
+                // Navigator.of(context).pop(image.path);
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => DisplayPictureScreen(
+                      // Pass the automatically generated path to
+                      // the DisplayPictureScreen widget.
+                      imagePath: image.path,
+                    ),
+                  ),
+                );
 
-                try {
-                  //await _initializeControllerFuture;
-
-                  final image = await _controller.takePicture();
-                  if (!mounted) return;
-                  Navigator.of(context).pop(image.path);
-                } catch (e) {
-                  // If an error occurs, log the error to the console.
-                  log(e.toString());
-                }
-              },
-              backgroundColor: Colors.red,
-              child: const Text("chup"), //Icon(Icons.camera_alt),
-            ),
-          );
-        });
+              } catch (e) {
+                // If an error occurs, log the error to the console.
+                log(e.toString());
+              }
+            },
+            backgroundColor: Colors.red,
+            child: const Text("chup"), //Icon(Icons.camera_alt),
+          ),
+        );}
+         return  const Center(
+           child: CircularProgressIndicator(),
+         );
+        // });
+      },
+      listener: (BuildContext context, MachineState state) {
+        if( state is LoadedMachineState){
+          loading = false;
+        }
       },
     );
   }
@@ -260,15 +351,15 @@ class DisplayPictureScreen extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // (kIsWeb)
-                //     ? Image.network(
-                //   imagePath,
-                //   key: ValueKey(imagePath),
-                //   fit: BoxFit.fill,
-                // )
-                //     : Image.file(
-                //   File(imagePath),
-                // ),
+                (kIsWeb)
+                    ? Image.network(
+                        imagePath,
+                        key: ValueKey(imagePath),
+                        fit: BoxFit.fill,
+                      )
+                    : Image.file(
+                        File(imagePath),
+                      ),
                 Align(
                   alignment: Alignment.bottomRight,
                   child: Padding(
@@ -278,10 +369,7 @@ class DisplayPictureScreen extends StatelessWidget {
                       child: IconButton(
                         icon: const Icon(Icons.close),
                         onPressed: () {
-                          Navigator.popUntil(
-                            context,
-                            ModalRoute.withName("/editProfile"),
-                          );
+                          Navigator.of(context).pop(imagePath);
                         },
                       ),
                     ),

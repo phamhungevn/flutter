@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class ButtonCommon extends StatelessWidget {
   final String label;
   final Function onTap;
-  final IconData icon;
+  final IconData? icon;
   final Color color;
 
   final double padding;
@@ -13,7 +13,7 @@ class ButtonCommon extends StatelessWidget {
       {Key? key,
       required this.label,
       required this.onTap,
-      required this.icon,
+      this.icon,
       required this.color,
       required this.padding,
       this.backgroundColor})
@@ -51,7 +51,7 @@ class ButtonCommon extends StatelessWidget {
                 const SizedBox(
                   width: 10,
                 ),
-                Icon(icon, color: color),
+                if (icon!= null) Icon(icon, color: color),
               ],
             ),
           ),

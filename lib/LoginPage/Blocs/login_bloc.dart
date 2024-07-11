@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -21,6 +22,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<LogginedEvent>(_sign);
     on<LogoutEvent>(_logout);
     on<LoginUpdateListEvent>(listUpdate);
+    on<LoginLoadingEvent>((event,emit) async {
+      emit(LoginState());
+      await loading();
+      emit(LoggedState(userList: userList));
+    });
   }
 
   static const List<String> scopes = <String>[
@@ -36,6 +42,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   // GoogleSignInAccount? _currentUser;
   // bool _isAuthorized = false;
   bool isLogin = false;
+
+ Future<void> loading() async {
+   await getListUser();
+
+ }
   //
   // Future<void> _handleGetContact(GoogleSignInAccount user) async {
   //   final http.Response response = await http.get(
@@ -87,7 +98,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       //     unawaited(_handleGetContact(account!));
       //   }
       // });
-     await googleSignIn.signInSilently();
+    // await googleSignIn.signInSilently();
     // log("vao gay gmaill 15");
       final result = await googleSignIn.signIn();
    //  log("vao gay gmaill 16 ${result?.email!}");
@@ -96,6 +107,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         for (User user in userList){
         //  log(user.email);
           if (user.email.toLowerCase() == result.email.toLowerCase()){
+            if (kDebugMode) {
+              print("Username ${result.email} ${result.id}");
+            }
             await setPreference(
                 username: result.email,
                 id: user.userId,
@@ -123,9 +137,16 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   }
   Future<List<User>> getListUser() async {
     //userList = await databaseHelper.queryAllUsers();
-    userList = await databaseHelper.queryAllAccount();
+    try{
+      userList = await databaseHelper.queryAllAccount();
+    }catch(e){
+      return [];
+    }
+
     for (User user in userList){
-      print(user.user);
+      if (kDebugMode) {
+        print(" List User tren may ${user.user}");
+      }
     }
     return userList;
   }
@@ -195,8 +216,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(LoginState(userList: userList));
   }
   FutureOr<void> _sign(LogginedEvent event, Emitter<LoginState> emit) async {
-    // emit(const _LoadingState());
-    await getListUser();
+    emit(LoginState());
+   // await getListUser();
     switch (event.loginMethod) {
       case LoginMethod.account:
         {
@@ -238,25 +259,28 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           // print(account?.email.toString());
           // print(account?.displayName.toString());
           // print(account?.id.toString());
-          // await setPreference(
-          //     username: "Phamhung",
-          //     id: "123",
-          //     loginMethod: event.loginMethod);
-          if (result != null) {
-            emit(LoggedState(userList: userList));
-          } else {
+
+           if (result != null) {
+             await setPreference(
+                 username: "Phamhung",
+                 id: "123",
+                 loginMethod: event.loginMethod);
+             emit(LoggedState(userList: userList));
+           }
+
+          else {
             log("loi gmail");
             emit(LoginStateError("loi gmail"));
           }
         }
         break;
-      default:
-        //face
+     default:
+      //  face
         await setPreference(
             username: event.username,
             id: event.id,
             loginMethod: LoginMethod.face);
-   //     emit(LoggedState(userList: userList));
+       emit(LoggedState(userList: userList));
 
     }
   }

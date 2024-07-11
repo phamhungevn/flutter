@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
 
+import 'video_service.dart';
 import 'camera.service.dart';
 import 'face_detector_service.dart';
 import 'ml_service.dart';
@@ -29,6 +30,7 @@ Future<void> setupServices() async {
         .registerLazySingleton<FaceDetectorService>(() =>
         FaceDetectorService());
     locator.registerLazySingleton<MLService>(() => MLService());
+    locator.registerLazySingleton<VideoService>(() => VideoService());
   }
   catch(e){
     log("setup service failed");
